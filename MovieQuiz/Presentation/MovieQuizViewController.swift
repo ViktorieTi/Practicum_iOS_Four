@@ -5,10 +5,12 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private var counterLabel: UILabel!
     @IBOutlet private var imageView: UIImageView!
     @IBOutlet private var textLabel: UILabel!
+    @IBOutlet weak var yesButton: UIButton!
+    @IBOutlet weak var noButton: UIButton!
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        let currentQuestion = questions[currentQuestionIndex] // 1
-        let givenAnswer = false // 2
+        let currentQuestion = questions[currentQuestionIndex]
+        let givenAnswer = false
         
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
@@ -24,26 +26,24 @@ final class MovieQuizViewController: UIViewController {
     private var quizCount = 0
     private var bestResult = 0
     private var bestResultDate = ""
-
-    struct QuizQuestion {
+    
+    private struct QuizQuestion {
         let image: String
-        let text: String // строка с вопросом о рейтинге фильма
+        let text: String
         let correctAnswer: Bool
     }
-    // для состояния "Вопрос показан"
-    struct QuizStepViewModel {
+    private struct QuizStepViewModel {
         let image: UIImage
         let question: String
         let questionNumber: String
     }
-    // для состояния "Результат квиза"
-    struct QuizResultsViewModel {
+    private struct QuizResultsViewModel {
         let title: String
         let text: String
         let buttonText: String
     }
     
-    struct Result {
+    private struct Result {
         let correctCount: Int
         let resultDate: String
     }
@@ -123,7 +123,7 @@ final class MovieQuizViewController: UIViewController {
             correctAnswers += 1
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-        self.showNextQuestionOrResults()
+            self.showNextQuestionOrResults()
         }
     }
     
@@ -138,13 +138,12 @@ final class MovieQuizViewController: UIViewController {
         if currentQuestionIndex == questions.count - 1 {
             quizCount += 1
             quizAllResults += [correctAnswers]
-            var sum = quizAllResults.reduce(0, {x, y in x + y})
-            var average = sum / quizAllResults.count * 10
-            print(quizAllResults)
-            print("\(average).00%")
-//            results.append(Result(
-//            correctCount: correctAnswers,
-//            resultDate: "\(Date())"))
+            yesButton.isEnabled = false
+            noButton.isEnabled = false
+            
+            let sum = quizAllResults.reduce(0, {x, y in x + y})
+            let average = sum / quizAllResults.count * 10
+            
             self.findBestResult(correctAnswers: correctAnswers, bestResult: bestResult)
             
             let viewModel = QuizResultsViewModel(
@@ -161,7 +160,7 @@ final class MovieQuizViewController: UIViewController {
                 title: viewModel.title,
                 message: viewModel.text,
                 preferredStyle: .alert)
-           
+            
             let action = UIAlertAction(title: viewModel.buttonText, style: .default) { _ in
                 self.currentQuestionIndex = 0
                 self.correctAnswers = 0
@@ -170,6 +169,8 @@ final class MovieQuizViewController: UIViewController {
                 let firstQuestion = self.questions[self.currentQuestionIndex]
                 let viewModel = self.convert(model: firstQuestion)
                 self.show(quiz: viewModel)
+                self.yesButton.isEnabled = true
+                self.noButton.isEnabled = true
             }
             alert.addAction(action)
             self.present(alert, animated: true, completion: nil)
